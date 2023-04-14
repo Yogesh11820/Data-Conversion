@@ -10,22 +10,35 @@ spark = SparkSession.builder.appName('TopSales').getOrCreate()
 @app.route('/top_sales_price')
 def top_sales_price():
 
-    #df = pd.read_excel(r'C:\Users\yoges\OneDrive\Desktop\Sales_April_2019_U.csv')
-    
+   
+     df_spark = spark.read.csv(r'C:\Users\yoges\OneDrive\Desktop\intern\Pyspark-app\Sales_April.csv', header=True, inferSchema=True)
 
-    df_spark = spark.read.csv(r'C:\Users\yoges\OneDrive\Desktop\intern\Pyspark-app\Sales_April.csv', header=True, inferSchema=True)
-    print("++++++++++++")
-    df_spark.printSchema()
-    
-    df_spark = df_spark.withColumn('Total Sales', df_spark['Quantity Ordered'] * df_spark['Selling Price'])
-    df_top_sales = df_spark.groupby('Product').agg({'Total Sales': 'sum'}).orderBy('sum(Total Sales)', ascending=False).limit(5)
-    
-    df_pandas = df_top_sales.toPandas()
-    
-    response = jsonify(df_pandas.to_dict(orient='records'))
-    return response
+     #April month sales 
+     #df['Order Date'].dt.month
+
+     df_april = df_spark.filter(df_spark['Order Date'].contains('04-'))
+     df_april = df_april.withColumn('Total Sales',df_april['Quantity Ordered']*df_april['Selling Price'])
+     df_april_top_sales = df_april.groupby('Product').agg({'Total Sales' : 'sum'}).orderBy('sum(Total Sales)',ascending=False).limit(5)
+     df_april_pd = df_april_top_sales.toPandas() 
+
+      
+     response1 = jsonify(df_april_pd.to_dict(orient='records'))    # april Month
+
+     response1 = df_april_pd.to_dict(orient='records')
+     #May month sales
+     df_may = df_spark.filter(df_spark['Order Date'].contains('05-'))
+     df_may = df_may.withColumn('Total Sales',df_may['Quantity Ordered']*df_may['Selling Price'])
+     df_may_top_sales = df_may.groupby('Product').agg({'Total Sales':'sum'}).orderBy('sum(Total Sales)',ascending=False).limit(5)
+     df_may_pd = df_may_top_sales.toPandas()
+    #  response2 = jsonify(df_may_pd.to_dict(orient='records'))
+    #  print(response2)
+     response2 = df_may_pd.to_dict(orient='records')
+
+     
+     return render_template('top_sales_value.html', response1=response1, response2=response2)
 
 
+    
 
 @app.route('/top_sales_quantity')
 def top_sales_quantity():
@@ -34,18 +47,24 @@ def top_sales_quantity():
     
 
     df_spark = spark.read.csv(r'C:\Users\yoges\OneDrive\Desktop\intern\Pyspark-app\Sales_April.csv', header=True, inferSchema=True)
-    print("===========")
-    df_spark.printSchema()
     
-    df_spark = df_spark.withColumn('Total Quantity', df_spark['Quantity Ordered'])
-    df_spark.printSchema()
-    df_top_sales = df_spark.groupby('Product').agg({'Total Quantity': 'sum'}).orderBy('sum(Total Quantity)', ascending=False).limit(5)
-    df_top_sales.printSchema()
+    #april month sales
+    df_april = df_spark.filter(df_spark['Order Date'].contains('04-'))
+    df_april = df_april.withColumn('Total Sales',df_april['Quantity Ordered'])
+    df_april_top_sales = df_april.groupby('Product').agg({'Total Sales' : 'sum'}).orderBy('sum(Total Sales)',ascending=False).limit(5)
+    df_april_pd = df_april_top_sales.toPandas()
+    response1 = df_april_pd.to_dict(orient='records')
 
-    df_pandas = df_top_sales.toPandas()
-    
-    response = jsonify(df_pandas.to_dict(orient='records'))
-    return response
+    #may month sales
+    df_may = df_spark.filter(df_spark['Order Date'].contains('05-'))
+    df_may = df_may.withColumn('Total Sales',df_may['Quantity Ordered'])
+    df_may_top_sales = df_may.groupby('Product').agg({'Total Sales' : 'sum'}).orderBy('sum(Total Sales)',ascending=False).limit(5)
+    df_may_pd = df_may_top_sales.toPandas()
+    response2 = df_may_pd.to_dict(orient='records')
+
+    return render_template('top_sales_quan.html',response1=response1,response2=response2)
+
+
 
 
 @app.route('/sales_outstanding')
@@ -94,7 +113,7 @@ def cagr():
     ratio = pow((amount+BV)/BV,1/n)
     CAGR = (ratio-1)*100
     print(CAGR)
-    return "Hello"
+    return f"The CAGR of Company for April Month -  {CAGR}"
 
 
 @app.route('/debtors_ageing')
@@ -113,14 +132,10 @@ def debtors_ageing():
     print(df_pandas)
     
     html = df_pandas.to_html()
-    file = open('templates/data.html','w')
+    file = open('templates/debtors_ageing.html','w')
     file.write(html)
     file.close()
-    file = open('templates/data.html','w')
-    file.write(html)
-    file.close()
-
-    return render_template('data.html')
+    return render_template('debtors_ageing.html')
     
     
 

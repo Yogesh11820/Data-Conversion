@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Top Sales by Valuation</title>
+  </head>
+  <body>
+    <h1>Top Sales by Valuation</h1>
+    <h2>April</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Total Sales</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in response1 %}
+        <tr>
+          <td>{{ row['Product'] }}</td>
+          <td>{{ row['sum(Total Sales)'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h2>May</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Total Sales</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in response2 %}
+        <tr>
+          <td>{{ row['Product'] }}</td>
+          <td>{{ row['sum(Total Sales)'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>
