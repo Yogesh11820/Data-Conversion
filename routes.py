@@ -18,22 +18,19 @@ def top_sales_price():
 
      
 
-     df_spark = df_spark.filter(df_spark['Order Date'].contains('-04-'))
-     df_april_top_sales = df_spark.groupby('Product').agg({'Total Sales' : 'sum'}).orderBy('sum(Total Sales)',ascending=False).limit(5)
-     df_april_pd = df_april_top_sales.toPandas() 
-
-      
+     df_april = df_spark.filter(df_spark['Order Date'].contains('-04-'))
+     df_april = df_april.groupby('Product').agg({'Total Sales' : 'sum'}).orderBy('sum(Total Sales)',ascending=False).limit(5)
+     df_april_pd = df_april.toPandas() 
      response1 = jsonify(df_april_pd.to_dict(orient='records'))    # april Month
-
      response1 = df_april_pd.to_dict(orient='records')
-     #May month sales
-     df_may = df_spark.filter(df_spark['Order Date'].contains('05-'))
-     df_may = df_may.withColumn('Total Sales',df_may['Quantity Ordered']*df_may['Selling Price'])
-     df_may_top_sales = df_may.groupby('Product').agg({'Total Sales':'sum'}).orderBy('sum(Total Sales)',ascending=False).limit(5)
-     df_may_pd = df_may_top_sales.toPandas()
-    
-     response2 = df_may_pd.to_dict(orient='records')
 
+
+
+     df_may = df_spark.filter(df_spark['Order Date'].contains('-05-'))
+     df_may = df_may.groupby('Product').agg({'Total Sales':'sum'}).orderBy('sum(Total Sales)',ascending=False).limit(5)
+     df_may_pd = df_may.toPandas()
+     response2 = jsonify(df_may_pd.to_dict(orient='records'))    # may month
+     response2 = df_may_pd.to_dict(orient='records')
      
      return render_template('top_sales_value.html', response1=response1, response2=response2)
 
@@ -187,8 +184,8 @@ def dt():
         #  print(response2)
 
 
-@app.route('/new_code')
-def new_code():
+@app.route('/top_sales_by_month')
+def top_sales_by_month():
 
     df_spark = spark.read.csv(r'C:\Users\yoges\OneDrive\Desktop\intern\Pyspark-app\Sales_April_updated.csv', header=True, inferSchema=True)
     df_spark = df_spark.withColumn('Total Sales', df_spark['Quantity Ordered'] * df_spark['Selling Price'])
@@ -196,9 +193,33 @@ def new_code():
    
     df_monthly_sales = df_spark.groupBy([month('Order Date').alias('Month'), 'Product']).agg({'Total Sales': 'sum'})
 
-    df_monthly_sales = df_monthly_sales.orderBy(['Month', desc('sum(Total Sales)')]).limit(30)
+    df_monthly_sales = df_monthly_sales.orderBy(['Month', desc('sum(Total Sales)')])
+
+    df_monthly_sales_pd = df_monthly_sales.toPandas()
+    top_sales = df_monthly_sales_pd.groupby('Month').head(5).to_dict(orient='records')
+
+    response = jsonify(top_sales)
+    return response
     
+    # response = jsonify(df_monthly_sales.toPandas().to_dict(orient='records'))
+    # return response
+
+
+@app.route('/top_sales_all')
+def top__sales_all():
+
+    df_spark = spark.read.csv(r'C:\Users\yoges\OneDrive\Desktop\intern\Pyspark-app\Sales_April_updated.csv', header=True, inferSchema=True)
+    df_spark = df_spark.withColumn('Total Sales', df_spark['Quantity Ordered'] * df_spark['Selling Price'])
+
+   
+    df_monthly_sales = df_spark.groupBy([month('Order Date').alias('Month'), 'Product']).agg({'Total Sales': 'sum'})
+
+    df_monthly_sales = df_monthly_sales.orderBy(['Month', desc('sum(Total Sales)')])
+
     response = jsonify(df_monthly_sales.toPandas().to_dict(orient='records'))
     return response
+   
 
+    
+    
    
